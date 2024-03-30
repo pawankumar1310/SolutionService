@@ -1,202 +1,139 @@
-using System.Data;
-using System.Data.SqlClient;
-using System.Xml.Linq;
-using Dto;
-using Structure;
+﻿//using Model.SolutionService;
+//using System.Data.SqlClient;
+//using System.Globalization;
+//using System.Reflection;
+//using System.Data;
 
-namespace DBService
-{
-    public class ProductDBService : IProductService
-    {
+//namespace DBService
+//{
+//    public class ProductDBService
+//    {
+//        public string connectionString = Utility.ConfigurationUtility.GetConnectionString();
+//        public async Task<StatusResponse<int>> AddProductWithSubscription(AddProductSubscriptionModel productSubscriptionModel)
+//        {
+//            try
+//            {
+//                CurdMiddleware curdMiddleware = new();
+//                var storedProcedure = SolutionDB.AddProductWithSubscription;
 
-        private readonly string _connectionString;
+//                var parameter = new SqlParameter[]
+//                {
+//                    new SqlParameter("@ProductName",productSubscriptionModel.Name),
+//                    new SqlParameter("@AmountPerDay",productSubscriptionModel.AmountPerDay),
+//                    new SqlParameter("@Code",productSubscriptionModel.Code),
+//                    new SqlParameter("@SubscriptionModes",string.Join(",",productSubscriptionModel.SubscriptionModes)),
+//                    new SqlParameter("@CreatedBy",productSubscriptionModel.CreatedBy),
 
-        public ProductDBService(IConfiguration configuration)
-        {
-            _connectionString = configuration.GetConnectionString("solutionDBCS");
-        }
+//                };
+//                var result = await curdMiddleware.ExecuteNonQuery(connectionString, storedProcedure, parameter);
+//                return result;
+//            }
+//            catch (Exception ex)
+//            {
+//                return StatusResponse<int>.FailureStatus(StatusCode.NotFound, ex);
+//            }
+//        }
+//        public async Task<StatusResponse<List<GetProductModel>>> GetInstitutionProductById(ProductIDModel productIDModel)
+//        {
+//            try
+//            {
+//                CurdMiddleware curdMiddleware = new();
+//                var storedProcedure = SolutionDB.GetProductWithSubscriptionByID;
+//                var parameter = new SqlParameter[] { new SqlParameter("ProductID", productIDModel.ProductId) };
+//                var result = await curdMiddleware.ExecuteDataReaderList<GetProductModel>(connectionString, storedProcedure, (reader) => new GetProductModel
+//                {
+//                    ProductID = reader.GetFieldValue<string>("ProductID"),
+//                    Name = reader.GetFieldValue<string>("ProductName"),
+//                    Code = reader.GetFieldValue<string>("ProductCode"),
+//                    AmountPerDay = reader.GetFieldValue<decimal>("AmountPerDay"),
+//                    SubscriptionModes = new List<string> { reader.GetFieldValue<string>("SubscriptionModes") },
+//                    SubscriptionIds = new List<string> { reader.GetFieldValue<string>("SubscriptionIDs") },
+//                    CreatedBy = reader.GetFieldValue<string>("ProductCreatedBy"),
+//                    UpdatedBy = reader.GetFieldValue<string>("ProductUpdatedBy"),
+//                    CreatedDate = reader.GetFieldValue<DateTime>("ProductCreatedDate"),
+//                    UpdatedDate = reader.GetFieldValue<DateTime>("ProductUpdatedDate")
+//                }, parameter);
+//                return result;
+//            }
+//            catch (Exception ex)
+//            {
+//                return StatusResponse<List<GetProductModel>>.FailureStatus(StatusCode.knownException, ex);
+//            }
+//        }
+//        public async Task<StatusResponse<List<GetProductModel>>> GetInstitutionProduct(GetProductModel getProductModel)
+//        {
+//            try
+//            {
+//                CurdMiddleware curdMiddleware = new();
+//                var storedProcedure = SolutionDB.GetProductWithSubscriptionAndModes;
+//                var result = await curdMiddleware.ExecuteDataReaderList<GetProductModel>(connectionString, storedProcedure, (reader) => new GetProductModel
+//                {
+//                    ProductID = reader.GetFieldValue<string>("ProductID"),
+//                    Name = reader.GetFieldValue<string>("ProductName"),
+//                    Code = reader.GetFieldValue<string>("ProductCode"),
+//                    AmountPerDay = reader.GetFieldValue<decimal>("AmountPerDay"),
+//                    SubscriptionModes = (reader.GetFieldValue<string>("SubscriptionModes"))?.Split(',').ToList(),
+//                    SubscriptionIds = (reader.GetFieldValue<string>("SubscriptionIDs"))?.Split(',').ToList(),
+//                    CreatedBy = reader.GetFieldValue<string>("ProductCreatedBy"),
+//                    UpdatedBy = reader.GetFieldValue<string>("ProductUpdatedBy"),
+//                    CreatedDate = reader.GetFieldValue<DateTime>("ProductCreatedDate"),
+//                    UpdatedDate = reader.GetFieldValue<DateTime>("ProductUpdatedDate")
+//                });
 
+//                return result;
+//            }
+//            catch (Exception ex)
+//            {
+//                return StatusResponse<List<GetProductModel>>.FailureStatus(StatusCode.knownException, ex);
+//            }
+//        }
+//        public async Task<StatusResponse<int>> UpdateProduct(UpdateProductModel updateProductModel)
+//        {
+//            try
+//            {
+//                CurdMiddleware curdMiddleware = new();
+//                var parameter = new SqlParameter[]
+//                {
+//                    new SqlParameter("@ProductId", updateProductModel.ProductId),
+//                    new SqlParameter("@ProductName", updateProductModel.Name),
+//                    new SqlParameter("@AmountPerDay", updateProductModel.AmountPerDay),
+//                    new SqlParameter("@Code", updateProductModel.Code),
+//                    new SqlParameter("@SubscriptionModes", string.Join(",", updateProductModel.SubscriptionModes)),
+//                    new SqlParameter("@UpdatedBy", updateProductModel.UpdatedBy)
+//                };
+//                var storedProcedure = SolutionDB.UpdateProductWithSubscription;
+//                var result = await curdMiddleware.ExecuteNonQuery(connectionString, storedProcedure, parameter);
+//                return result;
 
-//-------------------------------------- ADD PRODUCT ---------------------------------
-
-        public async Task<bool> InsertProductWithSubscription(CreateProductRequest productRequest)
-        {
-            using (SqlConnection connection = new SqlConnection(_connectionString))
-            {
-                await connection.OpenAsync();
-
-                using (SqlCommand command = new SqlCommand("SP__InsertProductWithSubscription", connection))
-                {
-                    command.CommandType = CommandType.StoredProcedure;
-                    command.Parameters.AddWithValue("@ProductName", productRequest.Name);
-                    command.Parameters.AddWithValue("@AmountPerDay", productRequest.AmountPerDay);
-                    command.Parameters.AddWithValue("@Code", productRequest.Code);
-                    command.Parameters.AddWithValue("@SubscriptionModes", string.Join(",", productRequest.SubscriptionModes));
-                    command.Parameters.AddWithValue("@CreatedBy", productRequest.CreatedBy);
-
-                    await command.ExecuteNonQueryAsync();
-
-                    return true;
-                }
-            }
-        }
-
-
-
-        //--------------------------------------- GET PRODUCT BY ID ------------------------------------
-
-            public async Task<Product> GetProductById(string productId)
-        {
-            using (SqlConnection connection = new SqlConnection(_connectionString))
-            {
-                await connection.OpenAsync();
-
-                using (SqlCommand command = new SqlCommand("SP__GetProductWithSubscriptionsAndModes", connection))
-                {
-                    command.CommandType = CommandType.StoredProcedure;
-                    command.Parameters.AddWithValue("@ProductID", productId);
-
-                    using (SqlDataReader reader = await command.ExecuteReaderAsync())
-                    {
-                        if (await reader.ReadAsync())
-                        {
-                            return new Product
-                            {
-                                ProductID = GetValueOrDefault<string>(reader, "ProductID"),
-                                Name = GetValueOrDefault<string>(reader, "ProductName"),
-                                Code = GetValueOrDefault<string>(reader, "ProductCode"),
-                                AmountPerDay = GetValueOrDefault<decimal>(reader, "AmountPerDay"),
-                                SubscriptionModes = GetSubscriptionModes(reader),
-                                SubscriptionIds = GetSubscriptionIds(reader),
-                                CreatedBy = GetValueOrDefault<string>(reader, "ProductCreatedBy"),
-                                UpdatedBy = GetValueOrDefault<string>(reader, "ProductUpdatedBy"),
-                                CreatedDate = (DateTime)reader["ProductCreatedDate"],
-                                UpdatedDate = (DateTime)reader["ProductUpdatedDate"],
-                            };
-                        }
-                        else
-                        {
-                            return null;
-                        }
-                    }
-                }
-            }
-        }
-
-
-        private T GetValueOrDefault<T>(SqlDataReader reader, string columnName)
-        {
-            object value = reader[columnName];
-            return value == DBNull.Value ? default(T) : (T)value;
-        }
-
-        private List<string> GetSubscriptionModes(SqlDataReader reader)
-        {
-            string subscriptionModes = GetValueOrDefault<string>(reader, "SubscriptionModes");
-            return string.IsNullOrEmpty(subscriptionModes) ? new List<string>() : subscriptionModes.Split(',').ToList();
-        }
-
-
-        private List<string> GetSubscriptionIds(SqlDataReader reader)
-        {
-            string subscriptionIds = GetValueOrDefault<string>(reader, "SubscriptionIDs");
-            return string.IsNullOrEmpty(subscriptionIds) ? new List<string>() : subscriptionIds.Split(',').ToList();
-        }
-
-
-//--------------------------------------- GET ALL PRODUCTS -------------------------------------------
-
-
-        public async Task<List<Product>> GetAllProducts()
-        {
-            using (SqlConnection connection = new SqlConnection(_connectionString))
-            {
-                await connection.OpenAsync();
-
-                using (SqlCommand command = new SqlCommand("SP__GetAllProductsWithSubscriptionsAndModes", connection))
-                {
-                    command.CommandType = CommandType.StoredProcedure;
-
-                    using (SqlDataReader reader = await command.ExecuteReaderAsync())
-                    {
-                        List<Product> products = new List<Product>();
-
-                        while (await reader.ReadAsync())
-                        {
-                            Product product = new Product
-                            {
-                                ProductID = GetValueOrDefault<string>(reader, "ProductID"),
-                                Name = GetValueOrDefault<string>(reader, "ProductName"),
-                                Code = GetValueOrDefault<string>(reader, "ProductCode"),
-                                AmountPerDay = GetValueOrDefault<decimal>(reader, "AmountPerDay"),
-                                SubscriptionModes = GetSubscriptionModes(reader),
-                                CreatedBy = GetValueOrDefault<string>(reader, "ProductCreatedBy"),
-                                UpdatedBy = GetValueOrDefault<string>(reader, "ProductUpdatedBy"),
-                                CreatedDate = (DateTime)reader["ProductCreatedDate"],
-                                UpdatedDate = (DateTime)reader["ProductUpdatedDate"],
-                            };
-
-                            products.Add(product);
-                        }
-
-                        return products;
-                    }
-                }
-            }
-        }
+//            }
+//            catch (Exception ex)
+//            {
+//                return StatusResponse<int>.FailureStatus(StatusCode.knownException, ex);
+//            }
+//        }
+//        public async Task<StatusResponse<int>> DeleteProduct(ProductIDModel deleteProductModel)
+//        {
+//            try
+//            {
+//                CurdMiddleware curdMiddleware = new();
+//                var parameter = new SqlParameter[]
+//                {
+//                    new SqlParameter("@ProductID", deleteProductModel.ProductId)
+//                };
+//                var storedProcedure = SolutionDB.DeleteInstitutionProduct;
+//                var result = await curdMiddleware.ExecuteNonQuery(connectionString, storedProcedure, parameter);
+//                return result;
+//            }
+//            catch (Exception ex)
+//            {
+//                return StatusResponse<int>.FailureStatus(StatusCode.knownException, ex);
+//            }
+//        }
 
 
 
 
 
 
-//-------------------------------------------- UPDATE PRODUCTS ------------------------------------------
-
-        public async Task UpdateProductWithSubscription(string productId, UpdateProductRequest productUpdateRequest)
-        {
-            using (SqlConnection connection = new SqlConnection(_connectionString))
-            {
-                await connection.OpenAsync();
-
-                using (SqlCommand command = new SqlCommand("SP__UpdateProductWithSubscription", connection))
-                {
-                    command.CommandType = CommandType.StoredProcedure;
-                    command.Parameters.AddWithValue("@ProductId", productId);
-                    command.Parameters.AddWithValue("@ProductName", productUpdateRequest.Name);
-                    command.Parameters.AddWithValue("@AmountPerDay", productUpdateRequest.AmountPerDay);
-                    command.Parameters.AddWithValue("@Code", productUpdateRequest.Code);
-                    command.Parameters.AddWithValue("@SubscriptionModes", string.Join(",", productUpdateRequest.SubscriptionModes));
-                   
-                    command.Parameters.AddWithValue("@UpdatedBy", productUpdateRequest.UpdatedBy);
-
-                    await command.ExecuteNonQueryAsync();
-                }
-            }
-        }
-
-
-
-
-
-
-
-//------------------------------------------- DELETE PRODUCT ------------------------------------------------
-
-        public async Task DeleteProduct(string productId)
-        {
-            using (SqlConnection connection = new SqlConnection(_connectionString))
-            {
-                await connection.OpenAsync();
-
-                using (SqlCommand command = new SqlCommand("SP__DeleteProductWithSubscription", connection))
-                {
-                    command.CommandType = CommandType.StoredProcedure;
-                    command.Parameters.AddWithValue("@ProductID", productId);
-
-                    await command.ExecuteNonQueryAsync();
-                }
-            }
-        }
-
-    }
-}
+//    }
+//}

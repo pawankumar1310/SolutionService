@@ -1,111 +1,71 @@
-﻿using Dto;
+﻿using DBService;
+using DTO.SolutionService;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Service;
-using Structure;
-using System.Data.SqlClient;
-using System.Data;
 
 namespace Controller
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     public class GroupController : ControllerBase
     {
-        private readonly GroupService _groupService;
-
-        public GroupController(GroupService groupService)
-        {
-            _groupService = groupService;
-        }
-        [HttpGet("Group")]
-        public async Task<IActionResult> GetGroup()
+        [HttpGet("GetGroups")]
+        public IActionResult GetGroups()
         {
             try
             {
-              List<GroupModel> group = await _groupService.GetGroupService();
-
-                if (group != null)
-                {
-                    return Ok(group);
-                }
-                else
-                {
-                    return NotFound("Group not found");
-                }
+                GroupService groupService = new();
+                return Ok(groupService.GetGroups());
             }
-            catch (Exception ex)
+            catch
             {
-               return BadRequest(ex.Message);
+                return StatusCode(500);
             }
         }
-
-        [HttpPost]
-        public async Task<IActionResult> CreateEntityGroup([FromBody] EntityGroupModel entityGroup)
+        [HttpPost("CreateEntityGroup")]
+        public IActionResult CreateEntityGroup(CreateEntityGroupRequest createEntityGroup)
         {
-            try
+            if (!string.IsNullOrEmpty(createEntityGroup.USRUserID) || !string.IsNullOrEmpty(createEntityGroup.GroupID))
             {
-                int result=await _groupService.UserGroupService(entityGroup);
-                if (result > 0)
+                try
                 {
-                    return Ok("Entity group created successfully");
+                    GroupService groupService = new();
+                    return Ok(groupService.CreateEntityGroup(createEntityGroup));
                 }
-                else
+                catch
                 {
-                    return BadRequest("Invalid Group");
+                    return StatusCode(500);
                 }
+
             }
-            catch (Exception ex)
+            else
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                return BadRequest();
             }
+
         }
-
-
-        [HttpGet("GetGroupName/{groupId}")]
-        public async Task<IActionResult> GetGroupNameByGroupId(string groupId)
+        [HttpPost("GetUserGroupByUserID")]
+        public IActionResult GetUserGroupByUserID(UserIDRequest userIDRequest)
         {
-            try
+            if (!string.IsNullOrEmpty(userIDRequest.USRUserID))
             {
-                var groupName = await _groupService.GetGroupNameByGroupId(groupId);
-                if(groupName != null)
+                try
                 {
-                    return Ok(groupName);
+                    GroupService groupService = new();
+                    return Ok(groupService.GetUserGroupByUserID(userIDRequest));
                 }
-                else
+                catch
                 {
-                    return BadRequest("Unbale to get group Id");
+                    return StatusCode(500);
                 }
+
             }
-            catch (Exception ex)
+            else
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                return BadRequest();
             }
+
         }
-
-        [HttpGet("GetGroupNameByUserId")]
-        public async Task<IActionResult> GetGroupNameByUserId(string usrUserId)
-        {
-            try
-            {
-                string groupName = await _groupService.GetGroupName(usrUserId);
-
-                if (groupName != null)
-                {
-                    return Ok(new { GroupName = groupName });
-                }
-                else
-                {
-                    return NotFound(new { Message = "Group not found for the given USRuserID." });
-                }
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { Message = $"An error occurred: {ex.Message}" });
-            }
-        }
-
-        
     }
 }
-

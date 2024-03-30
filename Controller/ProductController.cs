@@ -1,107 +1,54 @@
-using System;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Service;
-using Dto;
+﻿//using DTO.SolutionService;
+//using Microsoft.AspNetCore.Mvc;
+//using Service;
 
-namespace Controllers
-{
-    [ApiController]
-    [Route("api/products")]
-    public class ProductController : ControllerBase
-    {
-        private readonly ProductService _productService;
+//namespace Controller
+//{
+//    [Route("[controller]")]
+//    [ApiController]
+//    public class ProductController : ControllerBase
+//    {
+//        [HttpPost("AddProductWithSubscription")]
+//        public IActionResult AddProductWithSubscription(AddProductSubscriptionRequest addProductSubscriptionRequest)
+//        {
+//            if(!string.IsNullOrEmpty(addProductSubscriptionRequest.Name) || !string.IsNullOrEmpty(addProductSubscriptionRequest.CreatedBy) || !string.IsNullOrEmpty(addProductSubscriptionRequest.Code) || addProductSubscriptionRequest.SubscriptionModes!=null || addProductSubscriptionRequest.AmountPerDay!=null )
+//            {
+//                try
+//                {
+//                    ProductService productService = new();
+//                    return Ok(productService.AddProductWithSubscription(addProductSubscriptionRequest));
+//                }
+//                catch
+//                {
+//                    return StatusCode(500);
+//                }
+//            }
+//            else
+//            {
+//                return BadRequest();
+//            }
+//        }
+//        [HttpPost("GetInstitutionProductById")]
+//        public IActionResult GetInstitutionProductById(ProductIDRequest getProductID)
+//        {
+//            if (!string.IsNullOrEmpty(getProductID.ProductId))
+//            {
+//                try
+//                {
+//                    ProductService productService = new();
+//                    return Ok(productService.GetInstitutionProductById(getProductID));
+//                }
+//                catch
+//                {
+//                    return StatusCode(500);
+//                }
 
-        public ProductController(ProductService productService)
-        {
-            _productService = productService;
-        }
+//            }
+//            else
+//            {
+//                return BadRequest();
+//            }
 
-
-        [HttpPost("createProduct")]
-        public async Task<IActionResult> CreateProduct([FromBody] CreateProductRequest request)
-        {
-            try
-            {
-                var productId = await _productService.CreateProduct(request);
-                return Ok("Product added Successfully..");
-            }
-            catch (Exception ex)
-            {
-                // Log the exception or handle it appropriately
-                return StatusCode(500, "Internal Server Error");
-            }
-        }
-
-        [HttpGet("getProductById/{productId}")]
-        public async Task<IActionResult> GetProductById(string productId)
-        {
-            // try
-            // {
-                var product = await _productService.GetProductById(productId);
-                return Ok(product);
-            // }
-            // catch (Exception ex)
-            // {
-            //     // Log the exception or handle it appropriately
-            //     return StatusCode(500, "Internal Server Error");
-            // }
-        }
-
-
-        
-        [HttpGet("getAllProducts")]
-        public async Task<IActionResult> GetAllProducts()
-        {
-            // try
-            // {
-                var products = await _productService.GetAllProducts();
-                // if(products != null)
-                // {
-                    return Ok(products);
-            //     }
-            //     else
-            //     {
-            //         return Ok("Products not found");
-            //     }
-            // }
-            // catch(Exception ex)
-            // {
-            //     return StatusCode(500, "Internal Server Error");
-            // }
-
-        }
-
-        [HttpPut("{productId}")]
-        public async Task<IActionResult> UpdateProduct(string productId, [FromBody] UpdateProductRequest request)
-        {
-            try
-            {
-                await _productService.UpdateProduct(productId, request);
-               return Ok();
-            }   
-            catch (Exception ex)
-            {
-               // Log the exception or handle it appropriately
-               return StatusCode(500, "Internal Server Error");
-            }
-        }
-
-        [HttpDelete("deleteProduct/{productId}")]
-        public async Task<IActionResult> DeleteProduct(string productId)
-        {
-            try
-            {
-                await _productService.DeleteProduct(productId);
-                return Ok();
-            }
-            catch (Exception ex)
-            {
-                // Log the exception or handle it appropriately
-                return StatusCode(500, "Internal Server Error");
-            }
-        }
-
-
-    }
-}
+//        }
+//    }
+//}
